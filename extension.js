@@ -1,13 +1,9 @@
-const Lang = imports.lang;
-const UPower = imports.gi.UPowerGlib;
 const BaseIndicator = imports.ui.status.power.Indicator;
 const ExtensionUtils = imports.misc.extensionUtils;
 const Panel = imports.ui.main.panel;
 const Shell = imports.gi.Shell;
 const GObject = imports.gi.GObject;
 const GLib = imports.gi.GLib;
-const Config = imports.misc.config;
-
 
 /** Settings
  */
@@ -106,7 +102,8 @@ var BatIndicator = GObject.registerClass(
             this.bi_force_sync = GLib.timeout_add(
                 GLib.PRIORITY_DEFAULT,
                 FORCE_SYNC_PERIOD,
-                Lang.bind(this, this._sync));
+                this._sync.bind(this));
+               
         }
 
         _stop() {
