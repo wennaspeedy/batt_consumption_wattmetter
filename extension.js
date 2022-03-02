@@ -2,8 +2,9 @@ const BaseIndicator = imports.ui.status.power.Indicator;
 const ExtensionUtils = imports.misc.extensionUtils;
 const Panel = imports.ui.main.panel;
 const Shell = imports.gi.Shell;
-const GObject = imports.gi.GObject;
+//const GObject = imports.gi.GObject;
 const GLib = imports.gi.GLib;
+const { GObject, UPowerGlib: UPower } = imports.gi;
 
 /** Settings
  */
@@ -17,10 +18,6 @@ const VOLTAGE_NOW = "/sys/class/power_supply/BAT0/voltage_now";
 
 /** Common functions
  */
-
-function getStatus() {
-    return readFileSafely(BAT_STATUS, "Unknown");
-}
 
 function getVoltage() {
     const voltage = parseFloat(readFileSafely(VOLTAGE_NOW, -1));
@@ -55,30 +52,30 @@ var BatIndicator = GObject.registerClass(
 
             this.bi_force_sync = null;
             this.lastval = ""
-           
+            
         }
 
         
         _getBatteryStatus() { 
             const pct = this._proxy.Percentage;
            
-            const status = getStatus() 
-            //log("status: "+status)           
-
-            return status.includes('Charging') ? _("%s%% %s%sW").format(pct, "+", this._meas())
-                    : status.includes('Discharging') ? _("%s%% %s%sW").format(pct, "-", this._meas())
-                        : status.includes('Unknown') ? _("%s%% %s%sW").format(pct, "0", "")
+            return UPower.DeviceState.FULLY_CHARGED ? _("%s%% %s%s").format(pct, "", "")
+            : UPower.DeviceState.CHARGING ? _("%s%% %s%s W").format(pct, "+", this._meas())
+                    : UPower.DeviceState.DISCHARGING ? _("%s%% %s%s W").format(pct, "-", this._meas())
+                        : UPower.DeviceState.PENDING_CHARGE ? _("%s%% %s%s W").format(pct, "0", "")
                             : _("%s%% %s%s").format(pct, "", "")
 
-
-           
         }
 
         _sync() {
-            
             super._sync();
-           
-            this._percentageLabel.clutter_text.set_text(this._getBatteryStatus());
+        
+            //enabling battery percentage
+            if (!this._percentageLabel.visible){
+                this._percentageLabel.show()
+            }
+            
+            this._percentageLabel.clutter_text.set_markup('<span size="smaller">' + this._getBatteryStatus() + '</span>');
             return true;
         }
 
@@ -90,8 +87,9 @@ var BatIndicator = GObject.registerClass(
             if (current < 0 || voltage < 0) {
                 return 0;
             }
-           
-            return Math.round(power)
+            let pStr = String(Math.round(power))
+         
+            return pStr.length==1 ? "0"+pStr : pStr
             
         }
 
@@ -99,6 +97,7 @@ var BatIndicator = GObject.registerClass(
     
 
         _spawn() {
+            
             this.bi_force_sync = GLib.timeout_add(
                 GLib.PRIORITY_DEFAULT,
                 FORCE_SYNC_PERIOD,
@@ -119,7 +118,6 @@ class BatConsumptionWattmeter {
     constructor() {
         this.customIndicator = new BatIndicator();
         this.customIndicator._spawn();
-
         this.aggregateMenu = Panel.statusArea['aggregateMenu'];
         this.originalIndicator = this.aggregateMenu._power;
         this.aggregateMenu._indicators.replace_child(this.originalIndicator.indicators, this.customIndicator.indicators);
@@ -140,6 +138,11 @@ let bat_consumption_wattmeter;
 
 
 function enable() {
+ 
+    //prepare to settings
+    /*this.settings = ExtensionUtils.getSettings(
+        'org.gnome.shell.extensions.bcw');*/
+
     bat_consumption_wattmeter = new BatConsumptionWattmeter(); //tp_reader, tp_indicator);
 }
 
