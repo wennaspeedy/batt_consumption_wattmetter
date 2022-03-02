@@ -1,18 +1,12 @@
 const BaseIndicator = imports.ui.status.power.Indicator;
 const ExtensionUtils = imports.misc.extensionUtils;
 const Panel = imports.ui.main.panel;
-const Shell = imports.gi.Shell;
-//const GObject = imports.gi.GObject;
-const GLib = imports.gi.GLib;
-const { GObject, UPowerGlib: UPower } = imports.gi;
+const { GLib, GObject, UPowerGlib: UPower,Shell } = imports.gi;
 
 /** Settings
  */
 
 const FORCE_SYNC_PERIOD = 4000;
-
-const BAT_STATUS = "/sys/class/power_supply/BAT0/status";
-const POWER_NOW = "/sys/class/power_supply/BAT0/power_now";
 const CURRENT_NOW = "/sys/class/power_supply/BAT0/current_now";
 const VOLTAGE_NOW = "/sys/class/power_supply/BAT0/voltage_now";
 
