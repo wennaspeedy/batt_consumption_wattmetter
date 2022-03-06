@@ -1,17 +1,22 @@
 const BaseIndicator = imports.ui.status.power.Indicator;
 const ExtensionUtils = imports.misc.extensionUtils;
 const Panel = imports.ui.main.panel;
-const { GLib, GObject, UPowerGlib: UPower,Shell } = imports.gi;
+const { GLib, GObject, /*UPowerGlib: UPower,*/Shell } = imports.gi;
 
 /** Settings
  */
 
 const FORCE_SYNC_PERIOD = 4000;
+const BAT_STATUS = "/sys/class/power_supply/BAT0/status";
 const CURRENT_NOW = "/sys/class/power_supply/BAT0/current_now";
 const VOLTAGE_NOW = "/sys/class/power_supply/BAT0/voltage_now";
 
 /** Common functions
  */
+
+ function getStatus() {
+    return readFileSafely(BAT_STATUS, "Unknown");
+}
 
 function getVoltage() {
     const voltage = parseFloat(readFileSafely(VOLTAGE_NOW, -1));
@@ -52,12 +57,22 @@ var BatIndicator = GObject.registerClass(
         
         _getBatteryStatus() { 
             const pct = this._proxy.Percentage;
-           
+            const status = getStatus() 
+            //log("status: "+status)           
+
+          
+
+            /*
             return UPower.DeviceState.FULLY_CHARGED ? _("%s%% %s%s").format(pct, "", "")
             : UPower.DeviceState.CHARGING ? _("%s%% %s%s W").format(pct, "+", this._meas())
                     : UPower.DeviceState.DISCHARGING ? _("%s%% %s%s W").format(pct, "-", this._meas())
                         : UPower.DeviceState.PENDING_CHARGE ? _("%s%% %s%s W").format(pct, "0", "")
-                            : _("%s%% %s%s").format(pct, "", "")
+                            : _("%s%% %s%s").format(pct, "", "")*/
+            return status.includes('Charging') ? _("%s%% %s%s W").format(pct, "+", this._meas())
+                           : status.includes('Discharging') ? _("%s%% %s%s W").format(pct, "-", this._meas())
+                                : status.includes('Unknown') ? _("%s%% %s%s W").format(pct, "", "")
+                                : _("%s%% %s%s").format(pct, "", "")
+        
 
         }
 
@@ -68,8 +83,8 @@ var BatIndicator = GObject.registerClass(
             if (!this._percentageLabel.visible){
                 this._percentageLabel.show()
             }
-            
-            this._percentageLabel.clutter_text.set_markup('<span size="smaller">' + this._getBatteryStatus() + '</span>');
+            log('SYNC')
+            this._percentageLabel.clutter_text.set_markup('<span size="small">' + this._getBatteryStatus() + '</span>');
             return true;
         }
 
@@ -82,7 +97,6 @@ var BatIndicator = GObject.registerClass(
                 return 0;
             }
             let pStr = String(Math.round(power))
-         
             return pStr.length==1 ? "0"+pStr : pStr
             
         }
