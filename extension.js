@@ -10,6 +10,7 @@ const FORCE_SYNC_PERIOD = 4000;
 const BAT_STATUS = "/sys/class/power_supply/BAT0/status";
 const CURRENT_NOW = "/sys/class/power_supply/BAT0/current_now";
 const VOLTAGE_NOW = "/sys/class/power_supply/BAT0/voltage_now";
+const POWER_NOW = "/sys/class/power_supply/BAT0/power_now";
 
 /** Common functions
  */
@@ -23,10 +24,15 @@ function getVoltage() {
     return voltage === -1 ? voltage : voltage / 1000000;
 }
 
-function getCurrent() {
+function getPower() {
     const current = parseFloat(readFileSafely(CURRENT_NOW, -1));
-    return current === -1 ? current : current / 1000000;
+    const power = parseFloat(readFileSafely(POWER_NOW, -1));
+    const voltage = getVoltage();
+
+    return current === -1 ? power === -1 ? power : power / 1000000 : current / 1000000 * voltage;
 }
+
+
 
 function readFileSafely(filePath, defaultValue) {
     try {
@@ -90,14 +96,17 @@ var BatIndicator = GObject.registerClass(
 
 
         _meas(){
-            const current = getCurrent();
-            const voltage = getVoltage();
-            const power = current * voltage;
-            if (current < 0 || voltage < 0) {
+            const power = getPower();
+            //const voltage = getVoltage();
+            //const power = current * voltage;
+            
+            if (power < 0 ) {
                 return 0;
+            } else {
+                let pStr = String(Math.round(power))
+                return pStr.length==1 ? "0"+pStr : pStr
             }
-            let pStr = String(Math.round(power))
-            return pStr.length==1 ? "0"+pStr : pStr
+          
             
         }
 
