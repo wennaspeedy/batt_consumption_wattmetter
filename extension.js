@@ -7,35 +7,58 @@ const { GLib, GObject, /*UPowerGlib: UPower,*/Shell } = imports.gi;
  */
 
 const FORCE_SYNC_PERIOD = 4000;
-const BAT_STATUS = "/sys/class/power_supply/BAT0/status";
+/*const BAT_STATUS = "/sys/class/power_supply/BAT0/status";
 const CURRENT_NOW = "/sys/class/power_supply/BAT0/current_now";
 const VOLTAGE_NOW = "/sys/class/power_supply/BAT0/voltage_now";
-const POWER_NOW = "/sys/class/power_supply/BAT0/power_now";
+const POWER_NOW = "/sys/class/power_supply/BAT0/power_now";*/
 
 /** Common functions
  */
 
- function getStatus() {
-    return readFileSafely(BAT_STATUS, "Unknown");
+function getCorrectPath(){
+    let mainPath = "/sys/class/power_supply/BAT0/"
+    let altPath = "/sys/class/power_supply/BAT1/"
+    let path = readFileSafely(mainPath+"status", "none") === "none" ? readFileSafely(altPath+"status", "none") === "none" ? -1 : altPath : mainPath;
+    return path
 }
 
-function getVoltage() {
-    const voltage = parseFloat(readFileSafely(VOLTAGE_NOW, -1));
+
+ function getStatus() {
+    return readFileSafely(getCorrectPath()+"status", "Unknown");
+}
+
+function getValue(pathToFile) {
+    const voltage = parseFloat(readFileSafely(pathToFile, -1));
     return voltage === -1 ? voltage : voltage / 1000000;
 }
 
-function getPower() {
-    const current = parseFloat(readFileSafely(CURRENT_NOW, -1));
-    const power = parseFloat(readFileSafely(POWER_NOW, -1));
-    const voltage = getVoltage();
 
-    return current === -1 ? power === -1 ? power : power / 1000000 : current / 1000000 * voltage;
+
+function getPower() {
+
+    const path = getCorrectPath()
+    const power = getValue(path+"power_now") 
+    if (power != -1){
+        return power
+    }
+    else {
+        const current = getValue(path+"current_now") 
+        const voltage = getValue(path+"voltage_now") 
+        return current * voltage
+    }
+
 }
 
-
+//unusable
+/*function readFolderSafely(folderPath, defaultValue) {
+    log('folderpath translate: '+Shell.util_get_translated_folder_name(folderPath))
+    return Shell.util_get_translated_folder_name(folderPath) === null ? defaultValue : folderPath;
+}*/
 
 function readFileSafely(filePath, defaultValue) {
+
     try {
+
         return Shell.get_file_contents_utf8_sync(filePath);
     } catch (e) {
         log(`Cannot read file ${filePath}`, e);
@@ -56,7 +79,7 @@ var BatIndicator = GObject.registerClass(
             super._init();
 
             this.bi_force_sync = null;
-            this.lastval = ""
+            //this.lastval = ""
             
         }
 
@@ -89,8 +112,10 @@ var BatIndicator = GObject.registerClass(
             if (!this._percentageLabel.visible){
                 this._percentageLabel.show()
             }
-            log('SYNC')
-            this._percentageLabel.clutter_text.set_markup('<span size="small">' + this._getBatteryStatus() + '</span>');
+            //log('SYNC')
+            
+            //this._percentageLabel.clutter_text.set_markup('<span size="small">' + this._getBatteryStatus() + '</span>');
+            this._percentageLabel.clutter_text.set_text(this._getBatteryStatus());
             return true;
         }
 
