@@ -3,57 +3,24 @@ const ExtensionUtils = imports.misc.extensionUtils;
 const Panel = imports.ui.main.panel;
 const { GLib, GObject, /*UPowerGlib: UPower,*/Shell } = imports.gi;
 
-/** Settings
- */
 
 const FORCE_SYNC_PERIOD = 4000;
-/*const BAT_STATUS = "/sys/class/power_supply/BAT0/status";
-const CURRENT_NOW = "/sys/class/power_supply/BAT0/current_now";
-const VOLTAGE_NOW = "/sys/class/power_supply/BAT0/voltage_now";
-const POWER_NOW = "/sys/class/power_supply/BAT0/power_now";*/
 
-/** Common functions
- */
 
-function getCorrectPath(){
+function getCorrection(){
     let mainPath = "/sys/class/power_supply/BAT0/"
     let altPath = "/sys/class/power_supply/BAT1/"
     let path = readFileSafely(mainPath+"status", "none") === "none" ? readFileSafely(altPath+"status", "none") === "none" ? -1 : altPath : mainPath;
-    return path
+
+    let isTP = readFileSafely(path+"power_now", "none") === "none" ? false : true
+    return {'path':path,'isTP':isTP}
 }
 
-
- function getStatus() {
-    return readFileSafely(getCorrectPath()+"status", "Unknown");
+function _getValue(pathToFile) {
+    const value = parseFloat(readFileSafely(pathToFile, -1));
+    return value === -1 ? value : value / 1000000;
 }
 
-function getValue(pathToFile) {
-    const voltage = parseFloat(readFileSafely(pathToFile, -1));
-    return voltage === -1 ? voltage : voltage / 1000000;
-}
-
-
-
-function getPower() {
-
-    const path = getCorrectPath()
-    const power = getValue(path+"power_now") 
-    if (power != -1){
-        return power
-    }
-    else {
-        const current = getValue(path+"current_now") 
-        const voltage = getValue(path+"voltage_now") 
-        return current * voltage
-    }
-
-}
-
-//unusable
-/*function readFolderSafely(folderPath, defaultValue) {
-    log('folderpath translate: '+Shell.util_get_translated_folder_name(folderPath))
-    return Shell.util_get_translated_folder_name(folderPath) === null ? defaultValue : folderPath;
-}*/
 
 function readFileSafely(filePath, defaultValue) {
 
@@ -77,26 +44,22 @@ var BatIndicator = GObject.registerClass(
     class BatIndicator extends BaseIndicator {
         _init() {
             super._init();
-
+            this.correction = getCorrection();
             this.bi_force_sync = null;
-            //this.lastval = ""
             
         }
 
+        _getStatus() {
+            return readFileSafely(this.correction["path"]+"status", "Unknown");
+        }
         
+        _getPower() {
+            const path = this.correction["path"]
+            return this.correction['isTP'] === false ? _getValue(path+"current_now") * _getValue(path+"voltage_now")  : _getValue(path+"power_now")
+        }
         _getBatteryStatus() { 
             const pct = this._proxy.Percentage;
-            const status = getStatus() 
-            //log("status: "+status)           
-
-          
-
-            /*
-            return UPower.DeviceState.FULLY_CHARGED ? _("%s%% %s%s").format(pct, "", "")
-            : UPower.DeviceState.CHARGING ? _("%s%% %s%s W").format(pct, "+", this._meas())
-                    : UPower.DeviceState.DISCHARGING ? _("%s%% %s%s W").format(pct, "-", this._meas())
-                        : UPower.DeviceState.PENDING_CHARGE ? _("%s%% %s%s W").format(pct, "0", "")
-                            : _("%s%% %s%s").format(pct, "", "")*/
+            const status = this._getStatus() 
             return status.includes('Charging') ? _("%s%% %s%s W").format(pct, "+", this._meas())
                            : status.includes('Discharging') ? _("%s%% %s%s W").format(pct, "-", this._meas())
                                 : status.includes('Unknown') ? _("%s%% %s%s W").format(pct, "", "")
@@ -115,15 +78,20 @@ var BatIndicator = GObject.registerClass(
             //log('SYNC')
             
             //this._percentageLabel.clutter_text.set_markup('<span size="small">' + this._getBatteryStatus() + '</span>');
-            this._percentageLabel.clutter_text.set_text(this._getBatteryStatus());
+            if (this.correction["path"] != -1){
+                this._percentageLabel.clutter_text.set_text(this._getBatteryStatus());
+            } else {
+                log(`Error - Extension BATT_CONSUMPTION_WATTMETTER can't find battery!!!`);
+                return false;
+            }
+
             return true;
         }
 
 
         _meas(){
-            const power = getPower();
-            //const voltage = getVoltage();
-            //const power = current * voltage;
+            const power = this._getPower();
+            
             
             if (power < 0 ) {
                 return 0;
@@ -182,8 +150,8 @@ let bat_consumption_wattmeter;
 function enable() {
  
     //prepare to settings
-    /*this.settings = ExtensionUtils.getSettings(
-        'org.gnome.shell.extensions.bcw');*/
+    this.settings = ExtensionUtils.getSettings(
+        'org.gnome.shell.extensions.batt_consumption_wattmetter');
 
     bat_consumption_wattmeter = new BatConsumptionWattmeter(); //tp_reader, tp_indicator);
 }
