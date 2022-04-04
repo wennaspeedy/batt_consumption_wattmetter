@@ -1,20 +1,29 @@
 const BaseIndicator = imports.ui.status.power.Indicator;
 const ExtensionUtils = imports.misc.extensionUtils;
 const Panel = imports.ui.main.panel;
-const { GLib, GObject, /*UPowerGlib: UPower,*/Shell } = imports.gi;
+const { GLib, GObject, Shell,Gio,St } = imports.gi;
+
+const PanelMenu = imports.ui.panelMenu;
+const BAT0 = "/sys/class/power_supply/BAT0/"
+const BAT1 = "/sys/class/power_supply/BAT1/"
+const BAT2 = "/sys/class/power_supply/BAT2/"
 
 
-const FORCE_SYNC_PERIOD = 4000;
-
-
-function getCorrection(){
-    let mainPath = "/sys/class/power_supply/BAT0/"
-    let altPath = "/sys/class/power_supply/BAT1/"
-    let path = readFileSafely(mainPath+"status", "none") === "none" ? readFileSafely(altPath+"status", "none") === "none" ? -1 : altPath : mainPath;
-
+function getAutopath(){
+    let path = readFileSafely(BAT0+"status", "none") === "none" ? readFileSafely(BAT1+"status", "none") === "none" ? -1 : BAT1 : BAT0;
     let isTP = readFileSafely(path+"power_now", "none") === "none" ? false : true
     return {'path':path,'isTP':isTP}
 }
+
+function getManualPath(batteryType){
+    log('GET MANUAL! '+batteryType)
+    let path = batteryType === 1 ? BAT0 : batteryType === 2 ? BAT1 : batteryType === 3 ? BAT2 : BAT0
+    let finalpath = readFileSafely(path+"status", "none") === "none" ? -1 : path
+    log('GET MANUAL! '+finalpath)
+    let isTP = readFileSafely(path+"power_now", "none") === "none" ? false : true
+    return {'path':finalpath,'isTP':isTP}
+}
+
 
 function _getValue(pathToFile) {
     const value = parseFloat(readFileSafely(pathToFile, -1));
@@ -44,26 +53,44 @@ var BatIndicator = GObject.registerClass(
     class BatIndicator extends BaseIndicator {
         _init() {
             super._init();
-            this.correction = getCorrection();
+            this.correction = getAutopath();
+           // this.manual = "none"
             this.bi_force_sync = null;
-            
+           // this.interval = this._settings.get_string("interval");
+            this.settings = ExtensionUtils.getSettings('org.gnome.shell.extensions.batt_consumption_wattmetter');
         }
 
         _getStatus() {
+            
             return readFileSafely(this.correction["path"]+"status", "Unknown");
+
         }
-        
+
+
+
         _getPower() {
             const path = this.correction["path"]
             return this.correction['isTP'] === false ? _getValue(path+"current_now") * _getValue(path+"voltage_now")  : _getValue(path+"power_now")
         }
+
+
         _getBatteryStatus() { 
-            const pct = this._proxy.Percentage;
+   
+            const pct = this.settings.get_boolean("percentage") === true ? this._proxy.Percentage+"%" : "";
+
+            //const path = ""
+            let batteryType = this.settings.get_int("battery")
+            if (batteryType != 0){
+                this.correction = getManualPath(batteryType)
+            } 
+            
             const status = this._getStatus() 
-            return status.includes('Charging') ? _("%s%% %s%s W").format(pct, "+", this._meas())
-                           : status.includes('Discharging') ? _("%s%% %s%s W").format(pct, "-", this._meas())
-                                : status.includes('Unknown') ? _("%s%% %s%s W").format(pct, "", "")
-                                : _("%s%% %s%s").format(pct, "", "")
+
+
+            return status.includes('Charging') ? _("%s %s%s W").format(pct, "+", this._meas())
+                           : status.includes('Discharging') ? _("%s %s%s W").format(pct, "-", this._meas())
+                                : status.includes('Unknown') ? _("%s %s%s").format(pct, "", "?")
+                                : _("%s").format(this.settings.get_boolean("percentagefull") === true ? pct : "")
         
 
         }
@@ -108,9 +135,9 @@ var BatIndicator = GObject.registerClass(
 
         _spawn() {
             
-            this.bi_force_sync = GLib.timeout_add(
+                this.bi_force_sync = GLib.timeout_add(
                 GLib.PRIORITY_DEFAULT,
-                FORCE_SYNC_PERIOD,
+                this.settings.get_string("interval")+"000",
                 this._sync.bind(this));
                
         }
@@ -145,15 +172,17 @@ class BatConsumptionWattmeter {
  */
 
 let bat_consumption_wattmeter;
-
+let indicator = null;
 
 function enable() {
  
-    //prepare to settings
-    this.settings = ExtensionUtils.getSettings(
-        'org.gnome.shell.extensions.batt_consumption_wattmetter');
+   
 
     bat_consumption_wattmeter = new BatConsumptionWattmeter(); //tp_reader, tp_indicator);
+ //prepare to settings
+
+
+
 }
 
 function disable() {

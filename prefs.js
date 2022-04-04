@@ -1,61 +1,159 @@
 'use strict';
 
-const Gio = imports.gi.Gio;
-const Gtk = imports.gi.Gtk;
+const { Adw, Gio, Gtk } = imports.gi;
 
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
-
+const Utils = Me.imports.utils;
 
 function init() {
 }
+class Preferences {
+    constructor() {
+        this.main = new Gtk.Grid({
+            margin_top: 10,
+            margin_bottom: 10,
+            margin_start: 10,
+            margin_end: 10,
+            row_spacing: 12,
+            column_spacing: 18,
+            column_homogeneous: false,
+            row_homogeneous: false
+        });
+        
+        const addRow = ((main) => {
+            let row = 0;
+            return (label, input) => {
+                let inputWidget = input;
 
-function buildPrefsWidget() {
+                if (input instanceof Gtk.Switch) {
+                    inputWidget = new Gtk.Box({orientation: Gtk.Orientation.HORIZONTAL,});
+                    inputWidget.append(input);
+                }
 
-    // Copy the same GSettings code from `extension.js`
-    this.settings = ExtensionUtils.getSettings(
-        'org.gnome.shell.extensions.example');
+                if (label) {
+                    main.attach(label, 0, row, 1, 1);
+                    if (inputWidget)
+                        main.attach(inputWidget, 1, row, 1, 1);
+                }
+                else {
+                    main.attach(inputWidget, 0, row, 2, 1);
+                }
 
-    // Create a parent widget that we'll return from this function
-    let prefsWidget = new Gtk.Grid({
-        margin: 18,
-        column_spacing: 12,
-        row_spacing: 12,
-        visible: true
-    });
+                row++;
+            };
+        })(this.main);
 
-    // Add a simple title and add it to the prefsWidget
-    let title = new Gtk.Label({
-        label: `<b>${Me.metadata.name} Preferences</b>`,
-        halign: Gtk.Align.START,
-        use_markup: true,
-        visible: true
-    });
-    prefsWidget.attach(title, 0, 0, 2, 1);
 
-    // Create a label & switch for `show-indicator`
-    let toggleLabel = new Gtk.Label({
-        label: 'Show Extension Indicator:',
-        halign: Gtk.Align.START,
-        visible: true
-    });
-    prefsWidget.attach(toggleLabel, 0, 1, 1, 1);
+       
+ 
+        const createLabel = (label) => {
+            return new Gtk.Label({
+                label: label,
+                hexpand: true,
+                halign: Gtk.Align.START
+            })
+        }
 
-    let toggle = new Gtk.Switch({
-        active: this.settings.get_boolean ('show-indicator'),
-        halign: Gtk.Align.END,
-        visible: true
-    });
-    prefsWidget.attach(toggle, 1, 1, 1, 1);
+         const title_label = new Gtk.Label({
+            use_markup: true, 
+            label: '<span size="large" weight="heavy">'
+            +'BATTERY CONSUMPTION WATT METER'+'</span>',
+            hexpand: true,
+            halign: Gtk.Align.CENTER
+        });
+        addRow(null, title_label)
 
-    // Bind the switch to the `show-indicator` key
-    this.settings.bind( 
-        'show-indicator',
-        toggle,
-        'active',
-        Gio.SettingsBindFlags.DEFAULT
-    );
+        const title_label2 = new Gtk.Label({
+            use_markup: true, 
+            label: '<span size="small">'+'Version'
+            + ' ' + Utils.PrefFields.VERSION + '</span>',
+            hexpand: true,
+            halign: Gtk.Align.CENTER
+        });
+        addRow(null, title_label2)
 
-    // Return our widget which will be added to the window
-    return prefsWidget;
+        const link_label = new Gtk.Label({
+            use_markup: true,
+            label: '<span size="small"><a href="https://github.com/wennaspeedy/batt_consumption_wattmetter">'
+            + 'https://github.com/wennaspeedy/batt_consumption_wattmetter' + '</a></span>',
+            hexpand: true,
+            halign: Gtk.Align.CENTER,
+            margin_bottom: 10
+        });
+        addRow(null, link_label)
+
+       
+
+        addRow(null, new Gtk.Separator())
+
+        //INTERVAL BOX
+        const intervalBox = new Gtk.Box({ orientation: Gtk.Orientation.HORIZONTAL, spacing: 30 })
+        //const intervalEdit = new Gtk.Entry({ buffer: new Gtk.EntryBuffer() })
+        const intervalEdit = new Gtk.SpinButton({
+            adjustment: new Gtk.Adjustment({
+                lower: 1,
+                upper: 15,
+                step_increment: 1
+            })
+        })
+        
+        intervalBox.append(intervalEdit);
+        //const useDefaultLocaleLabel = createLabel(_("Use default locale") + ` (test)`)
+        const intervalLabel = createLabel("Interval (seconds)")
+        addRow(intervalLabel, intervalBox)
+
+        intervalEdit.value = Utils.PrefFields.INTERVAL
+
+        addRow(null, new Gtk.Separator())
+
+        //PERCENTAGE SWITCH
+        const percentageLabel = createLabel("Show percentage")
+        const percentageEdit = new Gtk.Switch()
+        addRow(percentageLabel, percentageEdit)
+        percentageEdit.active = Utils.PrefFields.PERCENTAGE
+        addRow(null, new Gtk.Separator())
+
+         //PERCENTAGEFULL SWITCH
+         const percentageFullLabel = createLabel("Show percentage when battery is full")
+         const percentageFullEdit = new Gtk.Switch()
+         addRow(percentageFullLabel, percentageFullEdit)
+         percentageFullEdit.active = Utils.PrefFields.PERCENTAGEFULL
+         addRow(null, new Gtk.Separator())
+
+
+         //BATTERY COMBOBOX
+         let combo = new Gtk.ComboBoxText ();
+         combo.tooltip_text = "Choose battery to use for metric"; 
+         combo.append_text ("AUTOMATIC");
+         combo.append_text ("BAT0");
+         combo.append_text ("BAT1");
+         combo.append_text ("BAT2");
+         combo.active = Utils.PrefFields.BATTERY 
+ 
+         addRow(createLabel("Choose battery"), combo)
+ 
+
+         addRow(null, new Gtk.Separator())
+
+        //bind SETTINGS
+        const settings = ExtensionUtils.getSettings('org.gnome.shell.extensions.batt_consumption_wattmetter');
+        settings.bind("percentage", percentageEdit, 'active', Gio.SettingsBindFlags.DEFAULT);
+        settings.bind("percentagefull", percentageFullEdit, 'active', Gio.SettingsBindFlags.DEFAULT);
+        settings.bind("interval", intervalEdit, 'text', Gio.SettingsBindFlags.DEFAULT);
+        settings.bind("battery", combo, 'active', Gio.SettingsBindFlags.DEFAULT);
+
+
 }
+
+}
+function buildPrefsWidget() {
+    let frame = new Gtk.Box();
+    let widget = new Preferences();
+    //addBox(frame, widget.main);
+    frame.append(widget.main);
+    if (frame.show_all)
+	    frame.show_all();
+    return frame;
+}
+

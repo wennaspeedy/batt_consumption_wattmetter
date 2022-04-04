@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist gettext-domain="gnome-shell-extensions">
+  <schema id="org.gnome.shell.extensions.batt_consumption_wattmetter" 
+        path="/org/gnome/shell/extensions/batt_consumption_wattmetter/">
+    <!-- See also: https://docs.gtk.org/glib/gvariant-format-strings.html -->
+    <key type="i" name="battery">
+      <default>0</default>
+      <summary></summary>
+      <description></description>
+  </key> 
+    <key type="s" name="interval">
+      <default>"4"</default>
+      <summary></summary>
+      <description></description>
+  </key>   
+  <key type="b" name="percentage">
+    <default>true</default>
+    <summary></summary>
+    <description></description>
+</key> 
+<key type="b" name="percentagefull">
+  <default>false</default>
+  <summary></summary>
+  <description></description>
+</key>
+  </schema>
+</schemalist>
