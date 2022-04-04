@@ -1,4 +1,4 @@
-# Battery consumption wattmetter
+# Battery Consumption Watt Metter
 Simple extension to show battery power consumption (Watt) next to battery percent in Gnome shell (Gnome battery widget).
 
  - Show actual charging/discharging consumption (+/-) in Watt
