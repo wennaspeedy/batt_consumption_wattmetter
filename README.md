@@ -13,9 +13,10 @@ Simple extension to show battery power consumption (Watt) next to battery percen
 ![image](https://user-images.githubusercontent.com/10447994/156018638-967c2b50-7dee-4b62-a56e-271ef7a2b74a.png)
 
 
-One of next versions will contains:
-<strike>1. Settings - custom reload interval</strike> DONE
-<strike>2. Settings - ON/OFF consumption info when battery is charging</strike> DONE
-<strike>3. Settings - ON/OFF battery percent</strike> DONE
-4. Color? warning when consumption exceeds certain value (f.e. -40W)
+TO DO: <br>
+<strike>1. Settings - custom reload interval</strike> **DONE** <br>
+<strike>2. Settings - ON/OFF consumption info when battery is charging</strike> **DONE** <br>
+<strike>3. Settings - ON/OFF battery percent</strike> **DONE** <br>
+4. Color? warning when consumption exceeds certain value (f.e. -40W) <br>
+5. Tell me...
 
