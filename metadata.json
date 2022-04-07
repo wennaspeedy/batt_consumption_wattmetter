@@ -4,9 +4,10 @@
   "name": "Battery Consumption Watt Meter",
   "shell-version": [
     "40",
-    "41"
+    "41",
+    "42"
   ],
   "url": "https://github.com/wennaspeedy/batt_consumption_wattmetter",
   "uuid": "batt_consumption_wattmetter@wennaspeedy",
-  "version": 7
+  "version": 10
 }

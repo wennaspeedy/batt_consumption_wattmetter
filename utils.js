@@ -4,6 +4,6 @@ var PrefFields = {
     PERCENTAGE  : true,
     PERCENTAGEFULL: true,
     BATTERY: 0,
-    VERSION: 7
+    VERSION: 10
 };
 
