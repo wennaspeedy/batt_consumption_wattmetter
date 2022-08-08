@@ -76,7 +76,7 @@ var BatIndicator = GObject.registerClass(
 
         _getBatteryStatus() { 
    
-            const pct = this.settings.get_boolean("percentage") === true ? this._proxy.Percentage+"%" : "";
+            const pct = this.settings.get_boolean("percentage") === true ? this._proxy.Percentage.toFixed(0)+"%" : "";
 
             //const path = ""
             let batteryType = this.settings.get_int("battery")
