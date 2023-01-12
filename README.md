@@ -1,3 +1,4 @@
+! This extension will no longer be developed !
 # Battery Consumption Watt Meter
 
 https://extensions.gnome.org/extension/4862/bat_consumption_wattmeter/
