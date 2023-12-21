@@ -110,7 +110,6 @@ class Preferences {
         addRow(null, new Gtk.Separator())
 
         //TIME REMAINING SWITCH
-        //PERCENTAGE SWITCH
         const timeremainingLabel = createLabel("Show time remaining")
         const timeremainingEdit = new Gtk.Switch()
         addRow(timeremainingLabel, timeremainingEdit)
