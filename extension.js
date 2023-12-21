@@ -120,9 +120,8 @@ var BatIndicator = GObject.registerClass({
             const pctTimeRemainingStr = [pct, timeRemaining].filter(val => val !== "").join(' ')
 
             if (status.includes('Charging')) {
-                return ("%s %s%s W").format(pctTimeRemainingStr, "+", this._meas());
+                return _("%s %s%s W").format(pctTimeRemainingStr, "+", this._meas());
             }
-             _
             if (status.includes('Discharging')) {
                 return _("%s %s%s W").format(pctTimeRemainingStr, "-", this._meas());
             }
