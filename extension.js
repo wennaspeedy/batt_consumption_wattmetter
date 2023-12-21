@@ -9,6 +9,8 @@ const {
     St
 } = imports.gi;
 
+const UPower = imports.UPower;
+
 const PanelMenu = imports.ui.panelMenu;
 const BAT0 = "/sys/class/power_supply/BAT0/"
 const BAT1 = "/sys/class/power_supply/BAT1/"
@@ -106,8 +108,8 @@ var BatIndicator = GObject.registerClass({
 
         _getBatteryStatus() {
             const pct = this.settings.get_boolean("percentage") === true ? this._proxy.Percentage + "%" : "";
+            const timeRemaining = this.settings.get_boolean("timeremaining") ? calculateTimeRemaining() : "";
 
-            //const path = ""
             let batteryType = this.settings.get_int("battery")
             if (batteryType != 0) {
                 this.correction = getManualPath(batteryType)
@@ -115,10 +117,20 @@ var BatIndicator = GObject.registerClass({
 
             const status = this._getStatus()
 
-            return status.includes('Charging') ? _("%s %s%s W").format(pct, "+", this._meas()) :
-                status.includes('Discharging') ? _("%s %s%s W").format(pct, "-", this._meas()) :
-                status.includes('Unknown') ? _("%s %s%s").format(pct, "", "?") :
-                _("%s").format(this.settings.get_boolean("percentagefull") === true ? pct : "")
+            const pctTimeRemainingStr = [pct, timeRemaining].filter(val => val !== "").join(' ')
+
+            if (status.includes('Charging')) {
+                return ("%s %s%s W").format(pctTimeRemainingStr, "+", this._meas());
+            }
+             _
+            if (status.includes('Discharging')) {
+                return _("%s %s%s W").format(pctTimeRemainingStr, "-", this._meas());
+            }
+            if (status.includes('Unknown')) {
+                return _("%s %s%s").format(pctTimeRemainingStr, "", "?");
+            }
+
+            return _("%s").format(this.settings.get_boolean("percentagefull") === true ? pct : "")
         }
 
         _sync() {
