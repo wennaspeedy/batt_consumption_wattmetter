@@ -22,6 +22,35 @@ function getAutopath() {
         'isTP': isTP
     }
 }
+// From https://github.com/mzur/gnome-shell-batime/blob/master/batime%40martin.zurowietz.de/extension.js
+const calculateTimeRemaining = function () {
+    // Do we have batteries or a UPS?
+    this.visible = this._proxy.IsPresent;
+    if (!this.visible) {
+       return false;
+    }
+
+    let seconds = 0;
+    let state = this._proxy.State;
+
+    if (this._proxy.State === UPower.DeviceState.CHARGING) {
+       seconds = this._proxy.TimeToFull;
+    } else if (this._proxy.State === UPower.DeviceState.DISCHARGING) {
+       seconds = this._proxy.TimeToEmpty;
+    }
+
+    // This can happen in various cases.
+    if (seconds === 0) {
+       return false;
+    }
+
+    let time = Math.round(seconds / 60);
+    let minutes = time % 60;
+    let hours = Math.floor(time / 60);
+
+    return _('%d\u2236%02d').format(hours, minutes)
+ };
+
 
 function getManualPath(batteryType) {
     log('GET MANUAL! ' + batteryType)

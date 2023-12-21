@@ -20,7 +20,7 @@ class Preferences {
             column_homogeneous: false,
             row_homogeneous: false
         });
-        
+
         const addRow = ((main) => {
             let row = 0;
             return (label, input) => {
@@ -44,9 +44,6 @@ class Preferences {
             };
         })(this.main);
 
-
-       
- 
         const createLabel = (label) => {
             return new Gtk.Label({
                 label: label,
@@ -56,7 +53,7 @@ class Preferences {
         }
 
          const title_label = new Gtk.Label({
-            use_markup: true, 
+            use_markup: true,
             label: '<span size="large" weight="heavy">'
             +'BATTERY CONSUMPTION WATT METER'+'</span>',
             hexpand: true,
@@ -65,7 +62,7 @@ class Preferences {
         addRow(null, title_label)
 
         const title_label2 = new Gtk.Label({
-            use_markup: true, 
+            use_markup: true,
             label: '<span size="small">'+'Version'
             + ' ' + Utils.PrefFields.VERSION + '</span>',
             hexpand: true,
@@ -83,8 +80,6 @@ class Preferences {
         });
         addRow(null, link_label)
 
-       
-
         addRow(null, new Gtk.Separator())
 
         //INTERVAL BOX
@@ -97,7 +92,7 @@ class Preferences {
                 step_increment: 1
             })
         })
-        
+
         intervalBox.append(intervalEdit);
         //const useDefaultLocaleLabel = createLabel(_("Use default locale") + ` (test)`)
         const intervalLabel = createLabel("Interval (seconds)")
@@ -114,6 +109,14 @@ class Preferences {
         percentageEdit.active = Utils.PrefFields.PERCENTAGE
         addRow(null, new Gtk.Separator())
 
+        //TIME REMAINING SWITCH
+        //PERCENTAGE SWITCH
+        const timeremainingLabel = createLabel("Show time remaining")
+        const timeremainingEdit = new Gtk.Switch()
+        addRow(timeremainingLabel, timeremainingEdit)
+        timeremainingEdit.active = Utils.PrefFields.TIMEREMAINING
+        addRow(null, new Gtk.Separator())
+
          //PERCENTAGEFULL SWITCH
          const percentageFullLabel = createLabel("Show percentage when battery is full")
          const percentageFullEdit = new Gtk.Switch()
@@ -124,15 +127,14 @@ class Preferences {
 
          //BATTERY COMBOBOX
          let combo = new Gtk.ComboBoxText ();
-         combo.tooltip_text = "Choose battery to use for metric"; 
+         combo.tooltip_text = "Choose battery to use for metric";
          combo.append_text ("AUTOMATIC");
          combo.append_text ("BAT0");
          combo.append_text ("BAT1");
          combo.append_text ("BAT2");
-         combo.active = Utils.PrefFields.BATTERY 
- 
+         combo.active = Utils.PrefFields.BATTERY
+
          addRow(createLabel("Choose battery"), combo)
- 
 
          addRow(null, new Gtk.Separator())
 
@@ -142,8 +144,7 @@ class Preferences {
         settings.bind("percentagefull", percentageFullEdit, 'active', Gio.SettingsBindFlags.DEFAULT);
         settings.bind("interval", intervalEdit, 'text', Gio.SettingsBindFlags.DEFAULT);
         settings.bind("battery", combo, 'active', Gio.SettingsBindFlags.DEFAULT);
-
-
+        settings.bind("timeremaining", timeremainingEdit, 'active', Gio.SettingsBindFlags.DEFAULT);
 }
 
 }
