@@ -7,21 +7,26 @@
       <default>0</default>
       <summary></summary>
       <description></description>
-  </key> 
+    </key> 
     <key type="s" name="interval">
       <default>"4"</default>
       <summary></summary>
       <description></description>
-  </key>   
-  <key type="b" name="percentage">
-    <default>true</default>
-    <summary></summary>
-    <description></description>
-</key> 
-<key type="b" name="percentagefull">
-  <default>false</default>
-  <summary></summary>
-  <description></description>
-</key>
+    </key>   
+    <key type="b" name="percentage">
+      <default>true</default>
+      <summary></summary>
+      <description></description>
+    </key> 
+    <key type="b" name="percentagefull">
+      <default>false</default>
+      <summary></summary>
+      <description></description>
+    </key>
+    <key type="b" name="timeremaining">
+      <default>false</default>
+      <summary></summary>
+      <description></description>
+    </key>
   </schema>
 </schemalist>
