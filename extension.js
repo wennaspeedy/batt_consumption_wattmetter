@@ -6,10 +6,9 @@ const {
     GObject,
     Shell,
     Gio,
-    St
+    St, 
+    UPowerGlib: UPower
 } = imports.gi;
-
-const UPower = imports.UPower;
 
 const PanelMenu = imports.ui.panelMenu;
 const BAT0 = "/sys/class/power_supply/BAT0/"
@@ -24,36 +23,6 @@ function getAutopath() {
         'isTP': isTP
     }
 }
-// From https://github.com/mzur/gnome-shell-batime/blob/master/batime%40martin.zurowietz.de/extension.js
-const calculateTimeRemaining = function () {
-    // Do we have batteries or a UPS?
-    this.visible = this._proxy.IsPresent;
-    if (!this.visible) {
-       return false;
-    }
-
-    let seconds = 0;
-    let state = this._proxy.State;
-
-    if (this._proxy.State === UPower.DeviceState.CHARGING) {
-       seconds = this._proxy.TimeToFull;
-    } else if (this._proxy.State === UPower.DeviceState.DISCHARGING) {
-       seconds = this._proxy.TimeToEmpty;
-    }
-
-    // This can happen in various cases.
-    if (seconds === 0) {
-       return false;
-    }
-
-    let time = Math.round(seconds / 60);
-    let minutes = time % 60;
-    let hours = Math.floor(time / 60);
-
-    return _('%d\u2236%02d').format(hours, minutes)
- };
-
-
 function getManualPath(batteryType) {
     log('GET MANUAL! ' + batteryType)
     let path = batteryType === 1 ? BAT0 : batteryType === 2 ? BAT1 : batteryType === 3 ? BAT2 : BAT0
@@ -97,6 +66,33 @@ var BatIndicator = GObject.registerClass({
             this.settings = ExtensionUtils.getSettings('org.gnome.shell.extensions.batt_consumption_wattmetter');
         }
 
+        // From https://github.com/mzur/gnome-shell-batime/blob/master/batime%40martin.zurowietz.de/extension.js
+        _calculateTimeRemaining = function () {
+            // Do we have batteries or a UPS?
+            if (!this._proxy.IsPresent) {
+                return "";
+            }
+
+            let seconds = 0;
+
+            if (this._proxy.State === UPower.DeviceState.CHARGING) {
+                seconds = this._proxy.TimeToFull;
+            } else if (this._proxy.State === UPower.DeviceState.DISCHARGING) {
+                seconds = this._proxy.TimeToEmpty;
+            }
+
+            // This can happen in various cases.
+            if (seconds === 0) {
+                return "";
+            }
+
+            let time = Math.round(seconds / 60);
+            let minutes = time % 60;
+            let hours = Math.floor(time / 60);
+
+            return _('%d\u2236%02d').format(hours, minutes)
+        };
+
         _getStatus() {
             return readFileSafely(this.correction["path"] + "status", "Unknown");
         }
@@ -108,7 +104,7 @@ var BatIndicator = GObject.registerClass({
 
         _getBatteryStatus() {
             const pct = this.settings.get_boolean("percentage") === true ? this._proxy.Percentage + "%" : "";
-            const timeRemaining = this.settings.get_boolean("timeremaining") ? calculateTimeRemaining() : "";
+            const timeRemaining = this.settings.get_boolean("timeremaining") === true ? this._calculateTimeRemaining() : "";
 
             let batteryType = this.settings.get_int("battery")
             if (batteryType != 0) {
