@@ -52,10 +52,12 @@ function readFileSafely(filePath, defaultValue) {
 /**
  * Indicator
  */
-
 var BatIndicator = GObject.registerClass({
         GTypeName: 'BatIndicator',
     },
+    // BaseIndicator is the Indicator class here -- https://gitlab.gnome.org/GNOME/gnome-shell/-/blob/gnome-42/js/ui/status/power.js?ref_type=heads
+    // The this._proxy object is from the parent class, and is a DBus Proxy to org.freedesktop.UPower.Device
+    // org.freedesktop.UPower.Device is documented here https://upower.freedesktop.org/docs/Device.html
     class BatIndicator extends BaseIndicator {
         _init() {
             super._init();
@@ -116,10 +118,10 @@ var BatIndicator = GObject.registerClass({
             const pctTimeRemainingStr = [pct, timeRemaining].filter(val => val !== "").join(' ')
 
             if (status.includes('Charging')) {
-                return _("%s %s%s W").format(pctTimeRemainingStr, "+", this._meas());
+                return _("%s %s%sW").format(pctTimeRemainingStr, "+", this._meas());
             }
             if (status.includes('Discharging')) {
-                return _("%s %s%s W").format(pctTimeRemainingStr, "-", this._meas());
+                return _("%s %s%sW").format(pctTimeRemainingStr, "-", this._meas());
             }
             if (status.includes('Unknown')) {
                 return _("%s %s%s").format(pctTimeRemainingStr, "", "?");
