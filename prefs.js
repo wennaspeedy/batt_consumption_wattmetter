@@ -72,8 +72,8 @@ class Preferences {
 
         const link_label = new Gtk.Label({
             use_markup: true,
-            label: '<span size="small"><a href="https://github.com/wennaspeedy/batt_consumption_wattmetter">'
-            + 'https://github.com/wennaspeedy/batt_consumption_wattmetter' + '</a></span>',
+            label: '<span size="small"><a href="https://github.com/zachgoldberg/batt_consumption_wattmetter">'
+            + 'https://github.com/zachgoldberg/batt_consumption_wattmetter' + '</a></span>',
             hexpand: true,
             halign: Gtk.Align.CENTER,
             margin_bottom: 10
