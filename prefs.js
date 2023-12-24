@@ -84,7 +84,6 @@ class Preferences {
 
         //INTERVAL BOX
         const intervalBox = new Gtk.Box({ orientation: Gtk.Orientation.HORIZONTAL, spacing: 30 })
-        //const intervalEdit = new Gtk.Entry({ buffer: new Gtk.EntryBuffer() })
         const intervalEdit = new Gtk.SpinButton({
             adjustment: new Gtk.Adjustment({
                 lower: 1,
@@ -94,7 +93,6 @@ class Preferences {
         })
 
         intervalBox.append(intervalEdit);
-        //const useDefaultLocaleLabel = createLabel(_("Use default locale") + ` (test)`)
         const intervalLabel = createLabel("Interval (seconds)")
         addRow(intervalLabel, intervalBox)
 
@@ -150,10 +148,8 @@ class Preferences {
 function buildPrefsWidget() {
     let frame = new Gtk.Box();
     let widget = new Preferences();
-    //addBox(frame, widget.main);
+    
     frame.append(widget.main);
-    if (frame.show_all)
-	    frame.show_all();
     return frame;
 }
 

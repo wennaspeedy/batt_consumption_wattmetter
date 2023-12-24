@@ -198,10 +198,9 @@ class BatConsumptionWattmeter {
  */
 
 let bat_consumption_wattmeter;
-let indicator = null;
 
 function enable() {
-    bat_consumption_wattmeter = new BatConsumptionWattmeter(); //tp_reader, tp_indicator);
+    bat_consumption_wattmeter = new BatConsumptionWattmeter();
 }
 
 function disable() {
