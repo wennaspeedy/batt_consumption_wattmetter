@@ -1,6 +1,6 @@
 # Battery Consumption Watt Meter
 
-https://extensions.gnome.org/extension/4862/bat_consumption_wattmeter/
+https://extensions.gnome.org/extension/6628/battery-consumption-watt-meter/
 
 Fork of https://github.com/wennaspeedy/batt_consumption_wattmetter
 
