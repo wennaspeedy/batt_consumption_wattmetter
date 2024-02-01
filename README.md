@@ -1,4 +1,6 @@
-! This extension will no longer be developed !
+# ! This extension will no longer be developed because it causes freezing!
+
+
 # Battery Consumption Watt Meter
 
 https://extensions.gnome.org/extension/4862/bat_consumption_wattmeter/
