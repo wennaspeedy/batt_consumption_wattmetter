@@ -1,5 +1,6 @@
 # ! This extension will no longer be developed because it causes freezing!
 
+# UP TO GNOME 42 ONLY
 
 # Battery Consumption Watt Meter
 
